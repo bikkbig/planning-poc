@@ -69,8 +69,10 @@ import {
   AgendaService,
   MonthAgendaService,
   ExcelExportService,
+  PrintService,
 } from '@syncfusion/ej2-angular-schedule';
 import {
+  ClickEventArgs,
   DragAndDropEventArgs,
   NodeExpandEventArgs,
 } from '@syncfusion/ej2-navigations';
@@ -88,7 +90,10 @@ import {
   FilterService,
   GroupService,
   PageService,
+  PdfExportService,
+  PdfExport,
 } from '@syncfusion/ej2-angular-grids';
+import { EditSettingsModel, GanttComponent, PdfExportProperties, ToolbarItem } from '@syncfusion/ej2-angular-gantt';
 
 class temp extends ODataV4Adaptor {
   override update(
@@ -141,6 +146,8 @@ L10n.load({
     TimelineViewsService,
     TimelineMonthService,
     ExcelExportService,
+    PrintService,
+    PdfExportService
   ],
 })
 export class AppComponent {
@@ -173,7 +180,7 @@ export class AppComponent {
     ...new Set(scheduleData.map((item: { [x: string]: any; }) => item['Contract'])),
   ];
   public depthList = [...new Set(scheduleData.map((item: { [x: string]: any; }) => item['Depth']))];
-
+  public ganttData: any;
   public formattedDate: any;
   public SCHEDUSELECTED: any;
   public BLANKPROJECTCREATE = [];
@@ -301,6 +308,150 @@ export class AppComponent {
   public allowMultiple = false;
   public eventSettings!: EventSettingsModel;
   nextElementSibling: any;
+  public taskSettings?: object;
+  @ViewChild('gantt', { static: true }) public fGantt?: GanttComponent;
+  public toolbar?: ToolbarItem[];
+  public columns: any;
+  public editSettings?: EditSettingsModel;
+  public timelineSettings: any;
+  public workWeek: String[] = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+  public labelSettings: object = {
+    taskLabel: 'TaskName'
+  };
+  public resourceFields: object = {
+    id: 'resourceId',
+    name: 'resourceName',
+  };
+  public resources: object[] = [
+    { resourceId: 1, resourceName: 'Operation Unit - Rig A', isExpand: false },
+    { resourceId: 2, resourceName: 'Operation Unit - Rig B', isExpand: false },
+    { resourceId: 3, resourceName: 'Operation Unit - Rig C', isExpand: false },
+  ];
+
+  ngOnInit(): void {
+    this.toolbar = ['PdfExport', 'ExcelExport'];
+    this.ganttData = [
+      // {
+      //   TaskID: 1,
+      //   TaskName: 'Project Initiation',
+      //   StartDate: new Date('04/01/2019'),
+      //   EndDate: new Date('04/30/2019'),
+      //   subtasks: [
+      //     { TaskID: 2, TaskName: 'Identify Site location', StartDate: new Date('04/01/2019'), Duration: 30, Progress: 20 },
+      //     { TaskID: 3, TaskName: 'Perform Soil test', StartDate: new Date('04/01/2019'), Duration: 30, Progress: 20 },
+      //     { TaskID: 4, TaskName: 'Soil test approval', StartDate: new Date('04/01/2019'), Duration: 30, Progress: 20 },
+      //   ]
+      // },
+      // {
+      //   TaskID: 5,
+      //   TaskName: 'Project Estimation',
+      //   StartDate: new Date('05/01/2019'),
+      //   EndDate: new Date('05/31/2019'),
+      //   subtasks: [
+      //     { TaskID: 6, TaskName: 'Develop floor plan for estimation', StartDate: new Date('05/01/2019'), Duration: 31, Progress: 100 },
+      //     { TaskID: 7, TaskName: 'List materials', StartDate: new Date('05/01/2019'), Duration: 31, Progress: 100 },
+      //     { TaskID: 8, TaskName: 'Estimation approval', StartDate: new Date('05/01/2019'), Duration: 31, Progress: 100 }
+      //   ]
+      // },
+      {
+        TaskID: 1,
+        TaskName: 'Project',
+        StartDate: new Date('03/01/2019'),
+        EndDate: new Date('05/31/2019'),
+        subtasks: [
+          {
+            TaskID: 2, TaskName: 'PLWC_14C', StartDate: new Date('03/01/2019'), Duration: 31, resources: [1], Progress: 30
+          },
+          {
+            TaskID: 3, TaskName: 'SGD-65', StartDate: new Date('04/01/2019'), Duration: 30, resources: [1], Progress: 30
+          },
+          {
+            TaskID: 4, TaskName: 'PLD-15', StartDate: new Date('05/01/2019'), Duration: 31, resources: [1], Progress: 30
+          },
+        ]
+      },
+      {
+        TaskID: 5,
+        TaskName: 'Project',
+        StartDate: new Date('05/01/2019'),
+        EndDate: new Date('07/31/2019'),
+        subtasks: [
+          {
+            TaskID: 6, TaskName: 'DAD-16', StartDate: new Date('05/01/2019'), Duration: 31, resources: [2], Progress: 30
+          },
+          {
+            TaskID: 7, TaskName: 'FUD-10', StartDate: new Date('06/01/2019'), Duration: 30, resources: [2], Progress: 30
+          },
+          {
+            TaskID: 8, TaskName: 'ERWC-06', StartDate: new Date('07/01/2019'), Duration: 31, resources: [2], Progress: 30
+          }
+        ]
+      },
+      {
+        TaskID: 9,
+        TaskName: 'Project',
+        StartDate: new Date('06/01/2019'),
+        EndDate: new Date('08/31/2019'),
+        subtasks: [
+          {
+            TaskID: 10, TaskName: 'FUP-13', StartDate: new Date('06/01/2019'), Duration: 30, Progress: 30, resources: [3]
+          },
+          {
+            TaskID: 11, TaskName: 'FUD-25', StartDate: new Date('07/01/2019'), Duration: 31, Progress: 30, resources: [3]
+          },
+          {
+            TaskID: 12, TaskName: 'PLD-14RA', StartDate: new Date('08/01/2019'), Duration: 31, resources: [3],
+          },
+        ]
+      },
+    ];
+    this.taskSettings = {
+      id: 'TaskID',
+      name: 'TaskName',
+      startDate: 'StartDate',
+      endDate: 'EndDate',
+      duration: 'Duration',
+      progress: 'Progress',
+      dependency: 'Predecessor',
+      resourceInfo: 'resources',
+      expandState: 'isExpand',
+      child: 'subtasks'
+    };
+    this.columns = [
+      { field: 'TaskID', visible: false },
+      { field: 'TaskName', visible: true },
+      { field: 'Duration', visible: false },
+      { field: 'Progress', visible: false },
+      { field: 'StartDate', visible: false }
+    ];
+    this.editSettings = {
+      allowEditing: true,
+      allowTaskbarEditing: true
+    };
+    this.timelineSettings = {
+      timelineUnitSize: 70,
+      topTier: {
+        unit: 'Year',
+      },
+      bottomTier: {
+        unit: 'Month',
+        count: 1,
+        format: 'MMM'
+      },
+    };
+  }
+
+  public toolbarClick(args: ClickEventArgs): void {
+    if (args.item.id === 'ganttDefault_pdfexport') {
+      let exportProperties: PdfExportProperties = {
+        fitToWidthSettings: {
+          isFitToWidth: true,
+        }
+      };
+      this.fGantt!.pdfExport(exportProperties);
+    }
+  };
+
   scheduleCreated() {
     this.scheduleObj.eventSettings = {
       dataSource: extend([], scheduleData, {}, true) as Record<string, any>[],
@@ -683,7 +834,7 @@ export class AppComponent {
     });
   }
 
-  public onActionBegin(event: ActionEventArgs): void {
+  public onActionBegin(event: any): void {
     if (event.requestType === 'eventChange') {
       (event.data as any).Id = parseInt((event.data as any).Id);
     }
@@ -714,34 +865,52 @@ export class AppComponent {
     }
 
     if (event.requestType === 'eventCreate' && !this.isTreeItemDropped) {
-    //   //For creating blank project -- WCLD
-    //   let idValue = event.data[0].Id;
-    //   let nameValue = event.data[0].Name;
-    //   let combinedValue = `BK-${idValue}-${nameValue}`;
-    //   //event.data[0].Name = combinedValue;
-    //   let isDuplicate = this.isDuplicateEntryName(nameValue);
+      //   //For creating blank project -- WCLD
+      //   let idValue = event.data[0].Id;
+      //   let nameValue = event.data[0].Name;
+      //   let combinedValue = `BK-${idValue}-${nameValue}`;
+      //   //event.data[0].Name = combinedValue;
+      //   let isDuplicate = this.isDuplicateEntryName(nameValue);
 
-    //   if (isDuplicate) {
-    //     //'This name already exists. Please choose a different name.';
-    //     console.log(
-    //       'This name already exists. Please choose a different name.'
-    //     );
-    //     event.cancel = true;
-    //   }
-    // }
+      //   if (isDuplicate) {
+      //     //'This name already exists. Please choose a different name.';
+      //     console.log(
+      //       'This name already exists. Please choose a different name.'
+      //     );
+      //     event.cancel = true;
+      //   }
+      // }
+      // if (event.requestType === 'toolbarItemRendering') {
+      //   const exportItem: ItemModel = {
+      //     align: 'Right',
+      //     showTextOn: 'Both',
+      //     prefixIcon: 'e-icon-schedule-excel-export',
+      //     text: 'Excel Export',
+      //     cssClass: 'e-excel-export',
+      //     click: this.onExportClick.bind(this),
+      //   };
 
-    // if (event.requestType === 'toolbarItemRendering') {
-    //   const exportItem: ItemModel = {
-    //     align: 'Right',
-    //     showTextOn: 'Both',
-    //     prefixIcon: 'e-icon-schedule-excel-export',
-    //     text: 'Excel Export',
-    //     cssClass: 'e-excel-export',
-    //     click: this.onExportClick.bind(this),
-    //   };
-
-    //   event.items.push(exportItem);
+      //   event.items.push(exportItem);
     }
+    if (event.requestType === 'toolbarItemRendering') {
+      let exportItem: ItemModel = {
+        align: 'Right',
+        showTextOn: 'Both',
+        prefixIcon: 'e-icon-schedule-excel-export',
+        text: 'Excel Export',
+        cssClass: 'e-excel-export',
+        click: this.onExportClick.bind(this),
+      };
+      event.items.push(exportItem);
+      exportItem = {
+        align: 'Right', showTextOn: 'Both', prefixIcon: 'e-icon-schedule-print',
+        text: 'Print', cssClass: 'e-print', click: this.onPrintIconClick.bind(this)
+      };
+      event.items?.push(exportItem);
+      console.log(event.items)
+    }
+
+
     if (event.requestType === 'eventCreate' && this.isTreeItemDropped) {
       const treeViewData: Record<string, any>[] = this.treeObj.fields
         .dataSource as Record<string, any>[];
@@ -761,6 +930,10 @@ export class AppComponent {
         remove(element);
       }
     }
+  }
+
+  public onPrintIconClick(): void {
+    this.scheduleObj?.print();
   }
 
   public actionComplete({ args }: { args: ActionEventArgs }): void {
@@ -1219,15 +1392,28 @@ export class AppComponent {
         endDate,
         true
       );
+      console.log('eventDatas', eventDatas)
       const result: Record<string, any>[] = new DataManager(
-        eventDatas
+        scheduleData
       ).executeLocal(new Query().where(predicate));
+
+      this.scheduleObj.eventSettings = {
+        dataSource: extend([], result, {}, true) as Record<string, any>[],
+        fields: {
+          subject: { title: 'Project Name', name: 'Name' },
+          startTime: { title: 'Start Date', name: 'StartTime' },
+          endTime: { title: 'End Date', name: 'EndTime' },
+        },
+        enableTooltip: true,
+        ignoreWhitespace: true,
+      };
+
       this.matchedSearchResult = result;
       // this.showSearchEvents('show', result);
     } else {
       // this.showSearchEvents('hide');
     }
-    this.showSearchResult = true;
+    // this.showSearchResult = true;
   }
 
   public clearOnClick(): void {
@@ -1240,6 +1426,16 @@ export class AppComponent {
     // this.showSearchEvents('hide');
     this.matchedSearchResult = [];
     this.mathedTotalWellCount = null;
+    this.scheduleObj.eventSettings = {
+      dataSource: extend([], scheduleData, {}, true) as Record<string, any>[],
+      fields: {
+        subject: { title: 'Project Name', name: 'Name' },
+        startTime: { title: 'Start Date', name: 'StartTime' },
+        endTime: { title: 'End Date', name: 'EndTime' },
+      },
+      enableTooltip: true,
+      ignoreWhitespace: true,
+    };
   }
 
   public calWellNumOnClick() {
@@ -1262,7 +1458,7 @@ export class AppComponent {
       console.error('Invalid switch event:', event);
       // Handle the invalid event case as needed
     }
-
+    this.showSearchResult = event.checked
     console.log('this.switchValue:', this.switchValue);
   }
 

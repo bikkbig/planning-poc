@@ -57,7 +57,7 @@ import {
 } from '@syncfusion/ej2-angular-dropdowns';
 import { NgModule } from '@angular/core';
 import { AppComponent } from './app.component';
-import { EditService, ExcelExportService, GanttModule, PdfExportService, SelectionService, ToolbarService } from '@syncfusion/ej2-angular-gantt';
+import { EditService, ExcelExportService, GanttAllModule, GanttModule, PdfExportService, SelectionService, ToolbarService } from '@syncfusion/ej2-angular-gantt';
 
 @NgModule({
   declarations: [AppComponent],
@@ -89,7 +89,7 @@ import { EditService, ExcelExportService, GanttModule, PdfExportService, Selecti
     ListBoxAllModule,
     DropDownListModule,
     GridModule,
-    GanttModule,
+    GanttAllModule
   ],
   providers: [ToolbarService, ExcelExportService, SelectionService, PdfExportService, EditService],
   bootstrap: [AppComponent],

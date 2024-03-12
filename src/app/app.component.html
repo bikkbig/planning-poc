@@ -137,12 +137,10 @@
       </form>
     </div>
   </div>
-  <!-- <ejs-gantt #gantt id="ganttDefault1" [dataSource]='ganttData' [taskFields]="taskSettings" [toolbar]="toolbar" (toolbarClick)="toolbarClick($event)" allowExcelExport='true' allowPdfExport='true'  [treeColumnIndex]="1"> </ejs-gantt> -->
-  <ejs-gantt #gantt id="ganttDefault" height="430px" [dataSource]="ganttData" [taskFields]="taskSettings" [toolbar]="toolbar" [columns]="columns" [editSettings]="editSettings" [durationUnit]="'day'" [timelineSettings]="timelineSettings"
-  (toolbarClick)="toolbarClick($event)" allowExcelExport='true' allowPdfExport='true' [treeColumnIndex]="1" [workWeek]="workWeek" 
-  [resources]="resources" [resourceFields] = "resourceFields" viewType="ResourceView" [labelSettings]="labelSettings" [enableMultiTaskbar]= "true"
-  ></ejs-gantt>
-  
+  <!-- <ejs-gantt #gantt id="ganttDefault" height="430px" [dataSource]="ganttData" [taskFields]="taskSettings" [toolbar]="toolbar" [columns]="columns" [editSettings]="editSettings" [durationUnit]="'day'" [timelineSettings]="timelineSettings"
+  (toolbarClick)="toolbarClick($event)" allowExcelExport='true' allowPdfExport='true' [treeColumnIndex]="1" [workWeek]="workWeek" [allowRowDragAndDrop]="true" [allowTaskbarDragAndDrop]="true"
+  [resources]="resources" [resourceFields] = "resourceFields" viewType="ResourceView" [labelSettings]="labelSettings" [enableMultiTaskbar]= "true" [selectionSettings]="selectionSettings" 
+  ></ejs-gantt> -->
   <ejs-grid *ngIf="showSearchResult" id="grid" [dataSource]="matchedSearchResult" allowPaging="true" allowSorting="true"
     showColumnMenu="true" allowFiltering="true" [filterSettings]="filterSettings" gridLines="Both">
     <e-columns>
@@ -158,143 +156,147 @@
       <e-column field="EndTime" headerText="EndTime" width="50" format="yyyy/M/d"></e-column>
     </e-columns>
   </ejs-grid>
-  <ejs-schedule *ngIf="!showSearchResult" id="schedule" #scheduleObj cssClass="schedule-excel-export" width="100%"
-    height="720px" [(selectedDate)]="selectedDate" [timeScale]="false" [workHours]="workHours" [monthsCount]="84"
-    [eventSettings]="eventSettings" [showQuickInfo]="showQuickInfo" [group]="group" [allowResizing]="false"
-    [(currentView)]="currentView" (dataBound)="onDatabound($event)" (actionBegin)="onActionBegin($event)"
-    (created)="scheduleCreated()" (drag)="onItemDrag($event)" (dragStop)="onItemDragStop($event)"
-    (popupOpen)="onPopupOpen($event)" (eventRendered)="onEventRendered($event)" (popupClose)="onPopupClose($event)"
-    [rowAutoHeight]="rowAutoHeight">
-    >
-    <ng-template #eventSettingsTooltipTemplate let-data>
-      <div class="tooltip-wrap">
-        <div class="content-area">
-          <div class="name">{{ data.Name }}</div>
+  <div id="div-schedule">
+    <ejs-schedule *ngIf="!showSearchResult" id="schedule" #scheduleObj cssClass="schedule-excel-export" width="100%"
+      height="720px" [(selectedDate)]="selectedDate" [timeScale]="false" [workHours]="workHours" [monthsCount]="84"
+      [eventSettings]="eventSettings" [showQuickInfo]="showQuickInfo" [group]="group" [allowResizing]="false"
+      [(currentView)]="currentView" (dataBound)="onDatabound($event)" (actionBegin)="onActionBegin($event)"
+      (created)="scheduleCreated()" (drag)="onItemDrag($event)" (dragStop)="onItemDragStop($event)"
+      (popupOpen)="onPopupOpen($event)" (eventRendered)="onEventRendered($event)" (popupClose)="onPopupClose($event)"
+      [rowAutoHeight]="rowAutoHeight">
+      >
+      <ng-template #eventSettingsTooltipTemplate let-data>
+        <div class="tooltip-wrap">
+          <div class="content-area">
+            <div class="name">{{ data.Name }}</div>
+          </div>
         </div>
-      </div>
-    </ng-template>
-    <ng-template #editorTemplate>
-      <form id="form-element" class="form-vertical">
-        <table class="custom-event-editor" width="100%" cellpadding="10">
-          <thead>
-            <tr>
-              <th colspan="10" class="topic-text">Project Info</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="e-textlabel" colspan="2">Name</td>
-              <td colspan="8">
-                <input id="Name" class="e-field e-input" placeholder="*Project Name (not allow duplicate)"
-                  floatLabelType="Auto" type="text" name="Name" style="width: 100%" />
-                <span class="name-validation" id="name-validation"></span>
-              </td>
-            </tr>
-            <tr id="projectPropertyRow">
-              <td class="e-textlabel" colspan="2">Number of Wells</td>
-              <td colspan="2">
-                <input type="number" id="NoOfWell" name="NoOfWell" class="e-field e-input" style="width: 100%"
-                  readonly />
-              </td>
-              <td class="e-textlabel" colspan="1">Asset</td>
-              <td colspan="1">
-                <input id="Asset" type="text" class="e-field e-input" name="Asset" style="width: 100%" readonly />
-              </td>
-              <td class="e-textlabel" colspan="1">Funnel</td>
-              <td colspan="1">
-                <input type="text" id="FunnelName" name="FunnelName" class="e-field e-input" style="width: 100%"
-                  readonly />
-              </td>
-            </tr>
-            <tr>
-              <td colspan="10">
-                <input id="RigId" type="hidden" class="e-field e-input" name="RigId" style="width: 100%" />
-                <input id="Id" type="hidden" class="e-field e-input" name="Id" />
-              </td>
-            </tr>
-            <tr>
-              <td class="e-textlabel" colspan="2">Rig</td>
-              <td colspan="2">
-                <input id="RigName" type="text" class="e-field e-input" name="RigName" style="width: 100%" />
-              </td>
-              <td class="e-textlabel" colspan="2">Depth</td>
-              <td colspan="2">
-                <input id="Depth" type="text" class="e-field e-input" name="Depth" style="width: 100%" />
-              </td>
-            </tr>
-            <tr>
-              <td class="e-textlabel" colspan="2">Start Date</td>
-              <td colspan="8">
-                <input id="StartTime" type="text" class="e-field" name="StartTime" style="width: 100%" />
-              </td>
-            </tr>
-            <tr>
-              <td class="e-textlabel" colspan="2">End Date</td>
-              <td colspan="8">
-                <input id="EndTime" type="text" class="e-field" name="EndTime" style="width: 100%" />
-              </td>
-            </tr>
-            <tr id="projectDateDurationRow">
-              <td class="e-textlabel" colspan="2">Duration(Days)</td>
-              <td colspan="2">
-                <input id="TotalDuration" type="number" class="e-field e-input" name="TotalDuration" style="width: 100%"
-                  readonly />
-              </td>
-              <td class="e-textlabel" colspan="2">Project Type</td>
-              <td colspan="2">
-                <input id="ProjectType" type="text" class="e-field e-input" name="ProjectType" style="width: 100%"
-                  readonly />
-              </td>
-            </tr>
-            <tr>
-              <td class="e-textlabel" colspan="2">Well Type</td>
-              <td colspan="2">
-                <input id="WellType" type="text" class="e-field e-input" name="WellType" style="width: 100%" readonly />
-              </td>
-              <td class="e-textlabel" colspan="2">BHST</td>
-              <td colspan="2">
-                <input id="BHST" type="text" class="e-field e-input" name="BHST" style="width: 100%" readonly />
-              </td>
-            </tr>
-            <tr>
-              <td colspan="10">
-                <div class="control-section">
-                  <div class="dual-list-wrapper">
-                    <div class="dual-list-groupa">
-                      <h4 style="font-size: 15px; font-weight: bolder;">
-                        Suggested WBS List
-                      </h4>
-                      <ejs-listbox [dataSource]="dataA" [toolbarSettings]="toolbarSettings" height="330px"
-                        scope="#connected-list" [fields]="fields" [noRecordsTemplate]="noRecordsTemplate"></ejs-listbox>
-                    </div>
-                    <div class="dual-list-groupb">
-                      <h4 style="font-size: 15px; font-weight: bolder;">
-                        Selected WBS Name
-                      </h4>
-                      <ejs-listbox id="connected-list" [dataSource]="dataB" height="330px" [fields]="fields"
-                        [noRecordsTemplate]="noRecordsTemplate"></ejs-listbox>
+      </ng-template>
+      <ng-template #editorTemplate>
+        <form id="form-element" class="form-vertical">
+          <table class="custom-event-editor" width="100%" cellpadding="10">
+            <thead>
+              <tr>
+                <th colspan="10" class="topic-text">Project Info</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="e-textlabel" colspan="2">Name</td>
+                <td colspan="8">
+                  <input id="Name" class="e-field e-input" placeholder="*Project Name (not allow duplicate)"
+                    floatLabelType="Auto" type="text" name="Name" style="width: 100%" />
+                  <span class="name-validation" id="name-validation"></span>
+                </td>
+              </tr>
+              <tr id="projectPropertyRow">
+                <td class="e-textlabel" colspan="2">Number of Wells</td>
+                <td colspan="2">
+                  <input type="number" id="NoOfWell" name="NoOfWell" class="e-field e-input" style="width: 100%"
+                    readonly />
+                </td>
+                <td class="e-textlabel" colspan="1">Asset</td>
+                <td colspan="1">
+                  <input id="Asset" type="text" class="e-field e-input" name="Asset" style="width: 100%" readonly />
+                </td>
+                <td class="e-textlabel" colspan="1">Funnel</td>
+                <td colspan="1">
+                  <input type="text" id="FunnelName" name="FunnelName" class="e-field e-input" style="width: 100%"
+                    readonly />
+                </td>
+              </tr>
+              <tr>
+                <td colspan="10">
+                  <input id="RigId" type="hidden" class="e-field e-input" name="RigId" style="width: 100%" />
+                  <input id="Id" type="hidden" class="e-field e-input" name="Id" />
+                </td>
+              </tr>
+              <tr>
+                <td class="e-textlabel" colspan="2">Rig</td>
+                <td colspan="2">
+                  <input id="RigName" type="text" class="e-field e-input" name="RigName" style="width: 100%" />
+                </td>
+                <td class="e-textlabel" colspan="2">Depth</td>
+                <td colspan="2">
+                  <input id="Depth" type="text" class="e-field e-input" name="Depth" style="width: 100%" />
+                </td>
+              </tr>
+              <tr>
+                <td class="e-textlabel" colspan="2">Start Date</td>
+                <td colspan="8">
+                  <input id="StartTime" type="text" class="e-field" name="StartTime" style="width: 100%" />
+                </td>
+              </tr>
+              <tr>
+                <td class="e-textlabel" colspan="2">End Date</td>
+                <td colspan="8">
+                  <input id="EndTime" type="text" class="e-field" name="EndTime" style="width: 100%" />
+                </td>
+              </tr>
+              <tr id="projectDateDurationRow">
+                <td class="e-textlabel" colspan="2">Duration(Days)</td>
+                <td colspan="2">
+                  <input id="TotalDuration" type="number" class="e-field e-input" name="TotalDuration"
+                    style="width: 100%" readonly />
+                </td>
+                <td class="e-textlabel" colspan="2">Project Type</td>
+                <td colspan="2">
+                  <input id="ProjectType" type="text" class="e-field e-input" name="ProjectType" style="width: 100%"
+                    readonly />
+                </td>
+              </tr>
+              <tr>
+                <td class="e-textlabel" colspan="2">Well Type</td>
+                <td colspan="2">
+                  <input id="WellType" type="text" class="e-field e-input" name="WellType" style="width: 100%"
+                    readonly />
+                </td>
+                <td class="e-textlabel" colspan="2">BHST</td>
+                <td colspan="2">
+                  <input id="BHST" type="text" class="e-field e-input" name="BHST" style="width: 100%" readonly />
+                </td>
+              </tr>
+              <tr>
+                <td colspan="10">
+                  <div class="control-section">
+                    <div class="dual-list-wrapper">
+                      <div class="dual-list-groupa">
+                        <h4 style="font-size: 15px; font-weight: bolder;">
+                          Suggested WBS List
+                        </h4>
+                        <ejs-listbox [dataSource]="dataA" [toolbarSettings]="toolbarSettings" height="330px"
+                          scope="#connected-list" [fields]="fields"
+                          [noRecordsTemplate]="noRecordsTemplate"></ejs-listbox>
+                      </div>
+                      <div class="dual-list-groupb">
+                        <h4 style="font-size: 15px; font-weight: bolder;">
+                          Selected WBS Name
+                        </h4>
+                        <ejs-listbox id="connected-list" [dataSource]="dataB" height="330px" [fields]="fields"
+                          [noRecordsTemplate]="noRecordsTemplate"></ejs-listbox>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </form>
-    </ng-template>
-    <e-resources>
-      <e-resource field="RigId" title="Rig" name="Rigs" [dataSource]="rigDataSource" [allowMultiple]="allowMultiple"
-        textField="Text" idField="Id" groupIDField="GroupId" colorField="Color">
-      </e-resource>
-    </e-resources>
-    <e-views>
-      <e-view option="TimelineYear" displayName="Timeline Year"></e-view>
-      <e-view option="TimelineMonth" displayName="Timeline Month" interval="48"></e-view>
-    </e-views>
-    <e-header-rows>
-      <e-header-row option="Year"></e-header-row>
-      <e-header-row option="Month"></e-header-row>
-    </e-header-rows>
-  </ejs-schedule>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </form>
+      </ng-template>
+      <e-resources>
+        <e-resource field="RigId" title="Rig" name="Rigs" [dataSource]="rigDataSource" [allowMultiple]="allowMultiple"
+          textField="Text" idField="Id" groupIDField="GroupId" colorField="Color">
+        </e-resource>
+      </e-resources>
+      <e-views>
+        <e-view option="TimelineYear" displayName="Timeline Year"></e-view>
+        <e-view option="TimelineMonth" displayName="Timeline Month" interval="48"></e-view>
+      </e-views>
+      <e-header-rows>
+        <e-header-row option="Year"></e-header-row>
+        <e-header-row option="Month"></e-header-row>
+      </e-header-rows>
+    </ejs-schedule>
+  </div>
 </div>
 <div id="grid"></div>

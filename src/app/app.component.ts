@@ -120,6 +120,8 @@ L10n.load({
   },
 });
 
+declare let html2pdf: any; //declare html2pdf
+
 @Component({
   // tslint:disable-next-line:component-selector
   selector: 'app-root',
@@ -314,6 +316,9 @@ export class AppComponent {
   public columns: any;
   public editSettings?: EditSettingsModel;
   public timelineSettings: any;
+  public selectionSettings: object = {
+    type: 'Multiple'
+  };
   public workWeek: String[] = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
   public labelSettings: object = {
     taskLabel: 'TaskName'
@@ -425,8 +430,11 @@ export class AppComponent {
       { field: 'StartDate', visible: false }
     ];
     this.editSettings = {
+      allowAdding: true,
       allowEditing: true,
-      allowTaskbarEditing: true
+      allowDeleting: true,
+      allowTaskbarEditing: true,
+      showDeleteConfirmDialog: true
     };
     this.timelineSettings = {
       timelineUnitSize: 70,
@@ -443,18 +451,31 @@ export class AppComponent {
 
   public toolbarClick(args: ClickEventArgs): void {
     if (args.item.id === 'ganttDefault_pdfexport') {
-      let exportProperties: PdfExportProperties = {
-        fitToWidthSettings: {
-          isFitToWidth: true,
-        }
+      // let exportProperties: PdfExportProperties = {
+      //   fitToWidthSettings: {
+      //     isFitToWidth: true,
+      //   }
+      // };
+      // this.fGantt!.pdfExport(exportProperties);
+      var element = document.getElementById("schedule");
+      var opt = {
+        margin: 0.3,
+        filename: "test.pdf",
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: "in", format: "A3", orientation: "landscape" },
       };
-      this.fGantt!.pdfExport(exportProperties);
+      html2pdf().set(opt).from(element).save();
+      // this.isVisible = false;
+    }
+    else if (args.item.id === 'ganttDefault_excelexport') {
+      this.fGantt!.excelExport();
     }
   };
 
   scheduleCreated() {
     this.scheduleObj.eventSettings = {
-      dataSource: extend([], scheduleData, {}, true) as Record<string, any>[],
+      dataSource: extend([], this.matchedSearchResult.length > 0 ? this.matchedSearchResult : scheduleData, {}, true) as Record<string, any>[],
       fields: {
         subject: { title: 'Project Name', name: 'Name' },
         startTime: { title: 'Start Date', name: 'StartTime' },
@@ -933,7 +954,16 @@ export class AppComponent {
   }
 
   public onPrintIconClick(): void {
-    this.scheduleObj?.print();
+    // this.scheduleObj?.print();
+    var element = document.getElementById("div-schedule");
+    var opt = {
+      margin: 0.5,
+      filename: "test.pdf",
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: { scale: 1 },
+      jsPDF: { unit: "cm", format: "A2", orientation: "landscape" },
+    };
+    html2pdf().set(opt).from(element).save();
   }
 
   public actionComplete({ args }: { args: ActionEventArgs }): void {
@@ -1450,14 +1480,14 @@ export class AppComponent {
   public switchValue: boolean = true;
 
   onSwitchChange(event: any): void {
-    if (typeof event === 'boolean') {
-      this.switchValue = event;
-    } else if (event && typeof event.checked === 'boolean') {
-      this.switchValue = event.checked;
-    } else {
-      console.error('Invalid switch event:', event);
-      // Handle the invalid event case as needed
-    }
+    // if (typeof event === 'boolean') {
+    //   this.switchValue = event;
+    // } else if (event && typeof event.checked === 'boolean') {
+    //   this.switchValue = event.checked;
+    // } else {
+    //   console.error('Invalid switch event:', event);
+    //   // Handle the invalid event case as needed
+    // }
     this.showSearchResult = event.checked
     console.log('this.switchValue:', this.switchValue);
   }

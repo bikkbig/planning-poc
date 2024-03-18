@@ -5,8 +5,8 @@ import {
   ViewChild,
   Directive,
 } from '@angular/core';
-import { Ajax, createElement } from '@syncfusion/ej2-base';
-import { scheduleData } from './data';
+import { Ajax, Internationalization, createElement } from '@syncfusion/ej2-base';
+import { scheduleData, contractData, operationContract } from './data';
 import { DropDownList } from '@syncfusion/ej2-dropdowns';
 import { MaskedTextBoxComponent } from '@syncfusion/ej2-angular-inputs';
 import {
@@ -161,7 +161,7 @@ export class AppComponent {
   public draggedItemId = '';
   public showQuickInfo: Boolean = true;
   @ViewChild('formElement') element: any;
-  public rowAutoHeight: boolean = false;
+  public rowAutoHeight: boolean = true;
   public currentView: View = 'TimelineMonth';
   public filterSettings = { type: 'CheckBox' };
   public showSearchResult: boolean = false;
@@ -302,9 +302,33 @@ export class AppComponent {
     },
   ];
 
+  public contractDataSource: Record<string, any>[] = [
+    { Text: 'Contract 1', Id: 1, GroupId: 104, Color: '#ff8787' },
+    { Text: 'Contract 2', Id: 2, GroupId: 104, Color: '#9775fa' },
+    { Text: 'Contract 3', Id: 3, GroupId: 105, Color: '#748ffc' },
+    { Text: 'Contract 4', Id: 4, GroupId: 105, Color: '#3bc9db' },
+    { Text: 'Contract 5', Id: 5, GroupId: 106, Color: '#69db7c' },
+    { Text: 'Contract 6', Id: 6, GroupId: 106, Color: '#fdd835' },
+    { Text: 'Contract 1', Id: 1, GroupId: 107, Color: '#df5286' },
+    { Text: 'Contract 2', Id: 2, GroupId: 108, Color: '#7fa900' },
+    { Text: 'Contract 3', Id: 3, GroupId: 109, Color: '#fec200' },
+    { Text: 'Contract 4', Id: 4, GroupId: 104, Color: '#5978ee' },
+    { Text: 'Contract 5', Id: 5, GroupId: 105, Color: '#00bdae' },
+    { Text: 'Contract 6', Id: 6, GroupId: 105, Color: '#ea80fc' }
+  ];
   public group: GroupModel = {
     enableCompactView: false,
-    resources: ['Rigs'],
+    resources: ['Rigs', 'Contracts'],
+  };
+
+  public resultData: Record<string, any>[] = [];
+
+  public legendColors: Record<string, any> = {
+    ContractValidityPeriod: "#c5e0b4",
+    ExtensionOption: "#e2f0d9",
+    EstimatedCVUsage: "#f8cbad",
+    ActualCVUsage: "#c55a11",
+    CFTNewContract: "#1de9b6",
   };
 
   public allowMultiple = false;
@@ -334,6 +358,9 @@ export class AppComponent {
   ];
 
   ngOnInit(): void {
+    this.resultData = this.getSummaryData();
+
+
     this.toolbar = ['PdfExport', 'ExcelExport'];
     this.ganttData = [
       // {
@@ -475,7 +502,7 @@ export class AppComponent {
 
   scheduleCreated() {
     this.scheduleObj.eventSettings = {
-      dataSource: extend([], this.matchedSearchResult.length > 0 ? this.matchedSearchResult : scheduleData, {}, true) as Record<string, any>[],
+      dataSource: extend([], this.matchedSearchResult.length > 0 ? this.matchedSearchResult : this.resultData, {}, true) as Record<string, any>[],
       fields: {
         subject: { title: 'Project Name', name: 'Name' },
         startTime: { title: 'Start Date', name: 'StartTime' },
@@ -501,9 +528,21 @@ export class AppComponent {
         }
       }
     );
+    // this.scheduleObj.eventSettings = {
+    //   dataSource: this.resultData,
+    //   fields: {
+    //     subject: { title: 'Project Name', name: 'Name' },
+    //     startTime: { title: 'Start Date', name: 'StartTime' },
+    //     endTime: { title: 'End Date', name: 'EndTime' },
+
+    //   },
+    //   enableTooltip: true,
+    //   ignoreWhitespace: true
+    // };
   }
 
   public allowDragAndDrop = true;
+  public intl: Internationalization = new Internationalization();
 
   reload() {
     this.scheduleObj.eventSettings = {
@@ -518,6 +557,40 @@ export class AppComponent {
       },
       enableTooltip: true,
     };
+  }
+
+  getSummaryData(): Record<string, any>[] {
+    let id: number = 1;
+    const contractDatas: Record<string, any>[] = extend([], contractData, {}, true) as Record<string, any>[];
+
+    for (let i = 0; i < contractDatas.length; i++) {
+      contractDatas[i]['Id'] = id;
+      // Add a null check for this.contractDataSource
+      const matchingContract = this.contractDataSource.find((contract: Record<string, any>) => contractDatas[i]['ContractId'] === contract['Id']);
+      contractDatas[i]['Name'] = matchingContract ? matchingContract['Text'] : '';
+      contractDatas[i]['StartTime'] = new Date(contractDatas[i]['StartDate']);
+      contractDatas[i]['EndTime'] = new Date(contractDatas[i]['EndDate']);
+      id++;
+    }
+
+    const rigDatas: Record<string, any>[] = extend([], scheduleData, {}, true) as Record<string, any>[];
+
+    for (let i = 0; i < rigDatas.length; i++) {
+      rigDatas[i]['ContractId'] = 0;
+      // IsReadonly is used to make the event readonly. Prevents the user from editing the event.
+      rigDatas[i]['IsReadonly'] = true;
+      rigDatas[i]['IsRigData'] = true;
+      id++;
+    }
+
+    const resultData: Record<string, any>[] = contractDatas.concat(rigDatas);
+    console.log('contractDatas', contractDatas)
+    console.log('rigDatas', rigDatas)
+    return resultData;
+  }
+
+  getDateRange(data: { StartTime: Date; EndTime: Date; }): string {
+    return this.intl.formatDate(data.StartTime, { skeleton: 'medium' }) + " - " + this.intl.formatDate(data.EndTime, { skeleton: 'medium' });
   }
 
   onPopupOpen(args: PopupOpenEventArgs): void {
@@ -974,29 +1047,46 @@ export class AppComponent {
   public onEventRendered(args: EventRenderedArgs): void {
     //const categoryColor: string = args.data.CategoryColor as string;
     //console.log('x.Id:', x.Id);
-    if (this.funnelColorCodes) {
-      let Index2 = this.funnelColorCodes.findIndex(
-        (index) => index['Text'] === args.data['FunnelName']
-      );
+    // if (this.funnelColorCodes) {
+    //   let Index2 = this.funnelColorCodes.findIndex(
+    //     (index) => index['Text'] === args.data['FunnelName']
+    //   );
 
-      // console.log('*****Index2 : ', Index2);
+    //   // console.log('*****Index2 : ', Index2);
 
-      if (Index2 !== -1) {
-        let funnelColor = this.funnelColorCodes[Index2]['Color'];
+    //   if (Index2 !== -1) {
+    //     let funnelColor = this.funnelColorCodes[Index2]['Color'];
 
-        // console.log('funnelColor:', funnelColor);
+    //     // console.log('funnelColor:', funnelColor);
 
-        args.element.style.backgroundColor = funnelColor;
-        // args.element.style.outline = '2px solid ' + funnelColor + ' ';
-        args.element.style.height = '70px';
-        args.element.style.fontSize = '14px';
-        args.element.style.color = '#000000';
-        //args.element.style.border = 'unset';
+    //     args.element.style.backgroundColor = funnelColor;
+    //     // args.element.style.outline = '2px solid ' + funnelColor + ' ';
+    //     args.element.style.height = '70px';
+    //     args.element.style.fontSize = '14px';
+    //     args.element.style.color = '#000000';
+    //     //args.element.style.border = 'unset';
+    //   } else {
+    //     console.log('FunnelName not found in funnelColorCodes.');
+    //   }
+    // } else {
+    //   console.log('funnelColorCodes is undefined.');
+    // }
+    if (args.data['IsRigData']) {
+      if (this.funnelColorCodes) {
+        const funnelIndex: number = this.funnelColorCodes.findIndex((index) => index['Text'] === args.data['FunnelName']);
+        if (funnelIndex > -1) {
+          const funnelColor: string = this.funnelColorCodes[funnelIndex]['Color'];
+          args.element.style.backgroundColor = funnelColor;
+          args.element.style.fontSize = '14px';
+          args.element.style.color = '#000000';
+        } else {
+          // FunnelName not found in funnelColorCodes.
+        }
       } else {
-        console.log('FunnelName not found in funnelColorCodes.');
+        // funnelColorCodes is undefined.
       }
     } else {
-      console.log('funnelColorCodes is undefined.');
+      args.element.style.backgroundColor = this.legendColors[args.data['EventType']];
     }
   }
 
@@ -1422,13 +1512,34 @@ export class AppComponent {
         endDate,
         true
       );
-      console.log('eventDatas', eventDatas)
       const result: Record<string, any>[] = new DataManager(
-        scheduleData
+        this.resultData
       ).executeLocal(new Query().where(predicate));
-
+      let projectIds: Record<string, any>[] = [];
+      result.forEach(item => {
+        if (!projectIds.includes(item['Id'])) {
+          projectIds.push({ projectId: item['Id'], rigId: item['RigId'] });
+        }
+      })
+      let resultContract: Record<string, any>[] = []
+      if (projectIds.length > 0) {
+        let contractIds: any[] = [];
+        operationContract.forEach(item => {
+          let operContract = projectIds.find(x => x['projectId'] == item['ProjectId']);
+          if (operContract) {
+            contractIds.push(item['ContractId']);
+            let projectId = operContract['projectId'];
+            let rigId = operContract['rigId'];
+            let contract = this.resultData.filter(x => x['ContractId'] === item['ContractId'] && x['RigId'] === rigId);
+            if (contract) {
+              resultContract = [...new Set([...resultContract, ...contract])];
+            }
+          }
+        });
+      }
+      this.matchedSearchResult = result.concat(resultContract);
       this.scheduleObj.eventSettings = {
-        dataSource: extend([], result, {}, true) as Record<string, any>[],
+        dataSource: extend([], this.matchedSearchResult, {}, true) as Record<string, any>[],
         fields: {
           subject: { title: 'Project Name', name: 'Name' },
           startTime: { title: 'Start Date', name: 'StartTime' },
@@ -1438,7 +1549,6 @@ export class AppComponent {
         ignoreWhitespace: true,
       };
 
-      this.matchedSearchResult = result;
       // this.showSearchEvents('show', result);
     } else {
       // this.showSearchEvents('hide');
@@ -1457,7 +1567,7 @@ export class AppComponent {
     this.matchedSearchResult = [];
     this.mathedTotalWellCount = null;
     this.scheduleObj.eventSettings = {
-      dataSource: extend([], scheduleData, {}, true) as Record<string, any>[],
+      dataSource: extend([], this.resultData, {}, true) as Record<string, any>[],
       fields: {
         subject: { title: 'Project Name', name: 'Name' },
         startTime: { title: 'Start Date', name: 'StartTime' },

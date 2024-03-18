@@ -158,17 +158,30 @@
   </ejs-grid>
   <div id="div-schedule">
     <ejs-schedule *ngIf="!showSearchResult" id="schedule" #scheduleObj cssClass="schedule-excel-export" width="100%"
-      height="720px" [(selectedDate)]="selectedDate" [timeScale]="false" [workHours]="workHours" [monthsCount]="84"
+      height="1000px" [(selectedDate)]="selectedDate" [timeScale]="false" [workHours]="workHours" [monthsCount]="84"
       [eventSettings]="eventSettings" [showQuickInfo]="showQuickInfo" [group]="group" [allowResizing]="false"
       [(currentView)]="currentView" (dataBound)="onDatabound($event)" (actionBegin)="onActionBegin($event)"
       (created)="scheduleCreated()" (drag)="onItemDrag($event)" (dragStop)="onItemDragStop($event)"
       (popupOpen)="onPopupOpen($event)" (eventRendered)="onEventRendered($event)" (popupClose)="onPopupClose($event)"
       [rowAutoHeight]="rowAutoHeight">
-      >
+      <!-- <ejs-schedule *ngIf="!showSearchResult" #scheduleObj id="schedule" cssClass="schedule-excel-export" width="100%" 
+      height="990px" [selectedDate]="selectedDate" [timeScale]="false" [workHours]="workHours" [monthsCount]="84"
+      [showQuickInfo]="showQuickInfo" [group]="group" [allowResizing]="false" [rowAutoHeight]="rowAutoHeight"
+      (actionBegin)="onActionBegin($event)" (created)="scheduleCreated()" (drag)="onItemDrag($event)"
+      (dragStop)="onItemDragStop($event)" (popupOpen)="onPopupOpen($event)" (eventRendered)="onEventRendered($event)"
+      (popupClose)="onPopupClose($event)" [rowAutoHeight]="rowAutoHeight"> -->
       <ng-template #eventSettingsTooltipTemplate let-data>
         <div class="tooltip-wrap">
-          <div class="content-area">
+          <div class="content-area" *ngIf="data.IsRigData">
             <div class="name">{{ data.Name }}</div>
+          </div>
+          <div class="content-area" *ngIf="!data.IsRigData">
+            <div class="content-area">
+              <div class="name">{{ data.Name }}</div>
+              <div class="ContractValueTarget">ContractValueTarget:{{ data.ContractValueTarget }}</div>
+              <div class="ContractValueUsed">ContractValueUsed:{{ data.ContractValueUsed }}</div>
+              <div class="date-range">{{getDateRange(data)}}</div>
+            </div>
           </div>
         </div>
       </ng-template>
@@ -287,10 +300,27 @@
         <e-resource field="RigId" title="Rig" name="Rigs" [dataSource]="rigDataSource" [allowMultiple]="allowMultiple"
           textField="Text" idField="Id" groupIDField="GroupId" colorField="Color">
         </e-resource>
+        <e-resource field="ContractId" title="Contract" name="Contracts" [dataSource]="contractDataSource"
+          [allowMultiple]="allowMultiple" textField="Text" idField="Id" groupIDField="GroupId" colorField="Color">
+        </e-resource>
       </e-resources>
       <e-views>
-        <e-view option="TimelineYear" displayName="Timeline Year"></e-view>
-        <e-view option="TimelineMonth" displayName="Timeline Month" interval="48"></e-view>
+        <!-- <e-view option="TimelineYear" displayName="Timeline Year"></e-view>
+        <e-view option="TimelineMonth" displayName="Timeline Month" interval="48"></e-view> -->
+        <e-view option="TimelineMonth" [interval]="monthInterval" displayName="TimelineYear">
+          <ng-template #eventTemplate let-data>
+            <div class="template-wrap" *ngIf="data.IsRigData">
+              <div class="name">{{ data.Name }}</div>
+            </div>
+            <div class="template-wrap" *ngIf="!data.IsRigData">
+              <div class="name">{{ data.Name }}</div>
+              <!-- <div class="contract-value-target">ContractValueTarget:{{ data.ContractValueTarget }}</div>
+                <div class="contract-value-used">ContractValueUsed:{{ data.ContractValueUsed }}</div> -->
+              <div class="date-range">{{getDateRange(data)}}</div>
+            </div>
+          </ng-template>
+
+        </e-view>
       </e-views>
       <e-header-rows>
         <e-header-row option="Year"></e-header-row>
